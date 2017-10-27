@@ -18,7 +18,7 @@ snaps_by_id = {}
 
 @app.route('/')
 def hello():
-    return 'Hello snap store example!'
+    return 'Open Source snap server here! :) Work is progressing...'
 
 
 def read_meta(name):
