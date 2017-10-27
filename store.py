@@ -1,12 +1,15 @@
 #!/usr/bin/env python
+from __future__ import print_function
 from flask import Flask, Response, request, send_from_directory, url_for, json
 from flask.helpers import safe_join
 import requests
 import os
+import sys
+
 
 
 FILES = os.environ.get('FILES', 'files')
-USTORE = 'https://search.apps.ubuntu.com/api/v1'
+USTORE = 'https://api.snapcraft.io/api/v1'
 HEADERS = ['X-Ubuntu-Release', 'X-Ubuntu-Series',
            'X-Ubuntu-Architecture', 'X-Ubuntu-Device-Channel',
            'X-Ubuntu-Wire-Format', 'Authorization']
@@ -31,7 +34,7 @@ def read_meta(name):
             pkg['anon_download_url'] = pkg['download_url']
             return pkg
     except Exception as e:
-        print e
+        print(e)
         return None
 
 
@@ -42,7 +45,7 @@ def refresh_meta():
     pkgs = [read_meta(n) for n in names]
     snaps = {pkg['package_name']: pkg for pkg in pkgs}
     snaps_by_id = {pkg['snap_id']: pkg for pkg in pkgs}
-    print 'loaded metadata for %d snaps' % len(snaps_by_id)
+    print('loaded metadata for %d snaps' % len(snaps_by_id))
 
 
 def _details(name):
@@ -56,12 +59,26 @@ def _details(name):
         r = requests.get(USTORE + '/snaps/details/%s' % name, headers=h)
         return r.json()
 
+def _assertion(value):
+    # passthrough to upstream if we don't have that snap
+    # TODO: global toggle for passthrough
+    # TODO: enable assertions for Snaps on this store (only works for passthrough for now)
+    h = {k: v for (k, v) in request.headers if k in HEADERS}
+    #, headers=h
+    r = requests.get(USTORE + '/snaps/assertions/snap-revision/%s' % value, headers=h)
+    # print(r.json(), file=sys.stderr)
+    return r.json()
 
 @app.route('/api/v1/snaps/details/<name>')
 def details(name):
     pkg = _details(name)
     return Response(json.dumps(pkg), mimetype='application/hal+json')
 
+@app.route('/api/v1/snaps/assertions/snap-revision/<value>')
+def assertion(value):
+    pkg2 = _assertion(value)
+    print(Response(json.dumps(pkg2)), file=sys.stderr)
+    return Response(json.dumps(pkg2), mimetype='application/hal+json')
 
 @app.route('/api/v1/search')
 @app.route('/api/v1/snaps/search')
