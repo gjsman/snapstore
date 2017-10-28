@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from __future__ import print_function
-from flask import Flask, Response, request, send_from_directory, url_for, json
+from flask import Flask, Response, request, send_from_directory, url_for, json, jsonify
 from flask.helpers import safe_join
 import requests
 import os
@@ -69,6 +69,16 @@ def _assertion(value):
     # print(r.json(), file=sys.stderr)
     return r.json()
 
+def _snap_declaration(value):
+    # passthrough to upstream if we don't have that snap
+    # TODO: global toggle for passthrough
+    # TODO: enable assertions for Snaps on this store (only works for passthrough for now)
+    h = {k: v for (k, v) in request.headers if k in HEADERS}
+    #, headers=h
+    r = requests.get(USTORE + '/snaps/assertions/snap-declaration/16/%s' % value, headers=h)
+    # print(r.json(), file=sys.stderr)
+    return r.json()
+
 @app.route('/api/v1/snaps/details/<name>')
 def details(name):
     pkg = _details(name)
@@ -77,8 +87,16 @@ def details(name):
 @app.route('/api/v1/snaps/assertions/snap-revision/<value>')
 def assertion(value):
     pkg2 = _assertion(value)
+    print("DEBUG: "+json.dumps(pkg2))
     print(Response(json.dumps(pkg2)), file=sys.stderr)
-    return Response(json.dumps(pkg2), mimetype='application/hal+json')
+    return Response(json.dumps(pkg2), mimetype='application/json')
+
+@app.route('/api/v1/snaps/assertions/snap-declaration/16/<value>')
+def snap_declaration(value):
+    pkg3 = _snap_declaration(value)
+    print("DEBUG 2: "+json.dumps(pkg3))
+    print(Response(json.dumps(pkg3)), file=sys.stderr)
+    return Response(json.dumps(pkg3), mimetype='application/json')
 
 @app.route('/api/v1/search')
 @app.route('/api/v1/snaps/search')
