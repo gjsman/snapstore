@@ -6,7 +6,7 @@ See http://snapcraft.io for more information on creating and using snap packages
 
 # Project Update
 This has been sittling unmodified for a while, however, maybe I will get back to work on it soon.
-The main thing that did not work was snap _assertions_, which were new and relatively undocumented when I forked this.
+The main thing that did not work was snap _assertions_, which were new and relatively undocumented when I forked this. Without the valid assertions, `snapd` will find and download the snap, but won't install it (and there are, as far as I know, no override commands for this.)
 Since then, I have found documentation on what they are at [http://ubuntudesign.github.io/docs-demo/snappy-dev/assertions/](http://ubuntudesign.github.io/docs-demo/snappy-dev/assertions/), but have not had time to implement them. Hopefully one day, unless someone can make a PR implementing this...
 
 # Server setup (manual)
